@@ -1,0 +1,46 @@
+$bodyColor: linear-gradient(to right, white, rgba(236, 238, 242, 1), rgba(224, 228, 234, 1));
+$logos-images-width: 90px;
+@font-face {
+  font-family: 'Roboto';
+  src: url('../fonts/Roboto-Black.ttf');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  background: $bodyColor;
+  font-family: 'Roboto', sans-serif;
+  text-align:center;
+}
+
+.parent {
+  display:flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.wrapper {
+  min-width:400px;
+}
+
+.yeoman_logo{
+  width: 120px;
+}
+
+.logos_wrapper {
+  display:flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.logos_wrapper {
+  img {
+    width: $logos-images-width
+  }
+}
+
+.github_logo_wrapper {
+  padding: 20px;
+}
+

@@ -1,0 +1,23 @@
+{
+  "parser": "babel-eslint",
+  "env": {
+    "browser": true,
+    "jest": true,
+    "node": true
+  },
+  "plugins": [
+  ],
+  "rules": {
+    "linebreak-style": 0,
+    "valid-jsdoc": ["error", {
+      "requireReturn": false
+    }],
+    "comma-dangle": ["error", "never"],
+    "import/extensions": 0, // skip import extensions
+    "import/prefer-default-export": 0,
+    "import/no-extraneous-dependencies": 0
+  },
+  "globals": {
+    "jest": false
+  }
+}
