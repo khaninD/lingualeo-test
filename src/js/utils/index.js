@@ -32,6 +32,8 @@ const setScript = (url) => {
   document.body.appendChild(script);
 };
 
+const correctTime  = number => number < 10 ? `0${number}` : number;
+
 /**
  * Short-hand для создвния элементов с атрибутами
  * @param {string} element - элемент который требуется создать
@@ -55,5 +57,6 @@ const buildElem = (element, props, textNode) => {
 module.exports = {
   loadImageAsync,
   setScript,
-  buildElem
+  buildElem,
+  correctTime
 };
