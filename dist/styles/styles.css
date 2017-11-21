@@ -1,2 +1,30 @@
+.comments-container__message {
+  margin-bottom: 30px; }
+
+.message {
+  border: 5px solid red; }
+
+.message_small {
+  min-width: 250px;
+  max-width: 400px;
+  box-sizing: border-box; }
+
+.message__inner {
+  padding: 30px;
+  position: relative; }
+
+.message__container {
+  padding: 30px; }
+
+.message__info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between; }
+
+.message__info-name {
+  font-style: italic; }
 
 /*# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6IiIsImZpbGUiOiJzdHlsZXMvc3R5bGVzLmNzcyIsInNvdXJjZVJvb3QiOiIifQ==*/

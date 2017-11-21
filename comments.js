@@ -16,7 +16,7 @@ const dataManipulation = message => {
   try {
     const data = JSON.parse(message);
     const time = createTimeString();
-    data.push(time);
+    data.time = time;
     return data;
   } catch(e) {
     console.warn(e);
