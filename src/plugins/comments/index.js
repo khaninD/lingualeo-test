@@ -1,10 +1,19 @@
 require('./main.scss');
 import {buildElem} from '../../../src/js/utils/index';
-const commentsWrapperClassName = 'comments-wrapper';
+// @TODO модификаторы должнв передаваться параметром в компонент
+// form block - className
+const commentBlockClassName = 'form';
+const userInfoClassName = 'form__user-info';
+const labelClassName = 'form__input-label';
+const inputElemClassName = 'form__input';
+const textAreaClassName = 'form__textarea';
 const commentsContainerClassName = 'comments-container';
 const messageElemContainerClassName = 'message';
 const timeContainerClassName = 'timeContainer';
 const errorContainerClassName = 'errorContainer';
+const sendButtonClassName = 'form__send-button';
+const resetButtonClassName = 'form__reset-button';
+const legendText = 'Форма отправки комментария';
 // messsage block - className
 const messageClassName = 'message';
 // message elements - ClassNames
@@ -23,8 +32,9 @@ const textAreaInfoText = 'Введите ваше сообщение: ';
 
 
 export default class CommentsPlugin {
-    constructor(name, parent = document.body) {
+    constructor(name, options = {}, parent = document.body) {
       this.name = name;
+      this.mod = options.mod;
       this.parent = parent;
       // обьект для работы с данными, по сути здесь без него можно обойтись, но если потребуется реализация
       // функций: редактирование комментария, комментирование другого автора, то без него никак
@@ -35,19 +45,6 @@ export default class CommentsPlugin {
             items: [],
             key: this.setKey() || 0
           };
-        }
-
-        setKey() {
-          if (localStorage) {
-            try {
-              return JSON.parse(localStorage.getItem(name)).key;
-            } catch(e) {
-              console.info('Данные невалидны или же их не удалось найти');
-              return false;
-            }
-          } else {
-            console.info('localStorage не поддерживается, данные невозможно сохранить')
-          }
         }
 
         getData() {
@@ -67,27 +64,12 @@ export default class CommentsPlugin {
           }
         }
 
-        /**
-         * Метод создания уникального ключа для элемента
-         */
-        createKey() {
-          if (this.data && this.data.key) {
-            this.data.key += 1;
-          } else {
-            consol.warn('Ошибка в структуре данных, не удается получить доступ к key')
-          }
-        }
 
         addData(item) {
           this.data && this.data.items && this.data.items.push(item);
           this.save();
         }
 
-        updateItem(index, text, date) {
-          const item = this.data.items[index];
-          item.text = text;
-          item.date = date;
-        }
       };
       this._init();
     }
@@ -96,17 +78,19 @@ export default class CommentsPlugin {
        // создать подключение
       const socket = new WebSocket("ws://localhost:8081");
       const wrapper = buildElem('div', {
-        className: commentsWrapperClassName
+        className: this.mod.form ? `${commentBlockClassName} ${this.mod.form}` : commentBlockClassName
       });
       const form = buildElem('form', {
         name: this.name
       });
 
       const sendButton = buildElem('button', {
-        type: 'submit'
+        type: 'submit',
+        className: sendButtonClassName
       }, sendButtonValue);
       const resetButton = buildElem('button', {
-        type: 'reset'
+        type: 'reset',
+        className: resetButtonClassName
       }, resetButtonValue);
 
       const commentsContainer = buildElem('div', {
@@ -121,32 +105,52 @@ export default class CommentsPlugin {
       // делаем доступным другим методам класса
       this.commentsContainer = commentsContainer;
 
+      const createFieldSet = () => {
+        const fieldSet = buildElem('fieldSet');
+        const legend = buildElem('legend', {}, legendText);
+        fieldSet.appendChild(legend);
+        return fieldSet;
+      };
+      // @TODO DRY
       const createUserInfoContainer = () => {
-        const wrapper = buildElem('div');
-        const p = buildElem('p', {}, userNameAnswerText);
+        const wrapper = buildElem('div', {
+          className: userInfoClassName
+        });
+        const label = buildElem('label');
+        const p = buildElem('p', {
+          className: labelClassName
+        }, userNameAnswerText);
         const userNameInput = buildElem('input', {
           type: 'text',
           name: 'userName',
-          required: true
+          required: true,
+          calssName: inputElemClassName
         });
-        wrapper.appendChild(p);
-        wrapper.appendChild(userNameInput);
+        wrapper.appendChild(label);
+        label.appendChild(p);
+        label.appendChild(userNameInput);
         return wrapper;
       };
-
+      // @TODO DRY
       const createTextAreaContainer = () => {
         const wrapper = buildElem('div');
-        const p = buildElem('p', {}, textAreaInfoText);
+        const label = buildElem('label');
+        const p = buildElem('p', {
+          className: labelClassName
+        }, textAreaInfoText);
         const textArea = buildElem('textarea', {
           name: 'message',
           rows: 10,
           cols: 45,
-          required: true
+          required: true,
+          className: textAreaClassName
         });
-        wrapper.appendChild(p);
-        wrapper.appendChild(textArea);
+        wrapper.appendChild(label);
+        label.appendChild(p);
+        label.appendChild(textArea);
         return wrapper;
       };
+
       // handlers
       form.onsubmit = () => {
         const formName = this.name;
@@ -174,26 +178,35 @@ export default class CommentsPlugin {
       socket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
+          this.storage && this.storage.addData(data);
           this.renderComment(data);
         } catch(e) {
           //@TODO вывести текст ошибки и информации о неудачном парсинге
           console.log(e);
         }
       };
-
-      form.appendChild(createUserInfoContainer());
-      form.appendChild(createTextAreaContainer());
-      form.appendChild(sendButton);
-      form.appendChild(resetButton);
+      const fieldSet = createFieldSet();
+      fieldSet.appendChild(createUserInfoContainer());
+      fieldSet.appendChild(createTextAreaContainer());
+      fieldSet.appendChild(sendButton);
+      fieldSet.appendChild(resetButton);
+      form.appendChild(fieldSet);
       wrapper.appendChild(form);
       wrapper.appendChild(this.errorContainer);
       this.parent.appendChild(commentsContainer);
       this.parent.appendChild(wrapper);
+
+      //render
+      if (this.storage && this.storage.data && this.storage.data.items) {
+        this.storage.data.items.forEach((item, index) => {
+          this.renderComment(item, index);
+        })
+      }
     }
 
     renderComment({userNameValue, outgoingMessage, time} = data) {
       const message = buildElem('div', {
-        className: `${messageClassName} message_small comments-container__message`
+        className: this.mod.messageBlock ? `${messageClassName} comments-container__message ${this.mod.messageBlock}` : `${messageClassName} comments-container__message `
       });
       const container = buildElem('div', {
         className: messageContainerClassName
