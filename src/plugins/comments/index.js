@@ -42,8 +42,7 @@ export default class CommentsPlugin {
       this.storage = new class Storage {
         constructor() {
           this.data = this.getData() || {
-            items: [],
-            key: this.setKey() || 0
+            items: []
           };
         }
 
