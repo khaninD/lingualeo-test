@@ -1,6 +1,6 @@
 require('./main.scss');
 import {buildElem} from '../../../src/js/utils/index';
-// @TODO модификаторы должнв передаваться параметром в компонент
+
 // form block - className
 const commentBlockClassName = 'form';
 const userInfoClassName = 'form__user-info';
@@ -8,6 +8,7 @@ const labelClassName = 'form__input-label';
 const inputElemClassName = 'form__input';
 const textAreaClassName = 'form__textarea';
 const commentsContainerClassName = 'comments-container';
+const commentContainerMessageClassName = 'comments-container__message';
 const messageElemContainerClassName = 'message';
 const timeContainerClassName = 'timeContainer';
 const errorContainerClassName = 'errorContainer';
@@ -50,7 +51,7 @@ export default class CommentsPlugin {
           try {
             return localStorage && JSON.parse(localStorage.getItem(name));
           } catch(e) {
-            console.warn('Not data found');
+            console.warn('No data found');
             return false;
           }
         }
@@ -59,7 +60,7 @@ export default class CommentsPlugin {
           if (localStorage) {
             localStorage.setItem(name, JSON.stringify(this.data))
           } else {
-            console.log('localStorage не поддерживается, данные сохранить не удалось')
+            console.info('localStorage не поддерживается, данные сохранить не удалось')
           }
         }
 
@@ -110,7 +111,7 @@ export default class CommentsPlugin {
         fieldSet.appendChild(legend);
         return fieldSet;
       };
-      // @TODO DRY
+
       const createUserInfoContainer = () => {
         const wrapper = buildElem('div', {
           className: userInfoClassName
@@ -130,7 +131,7 @@ export default class CommentsPlugin {
         label.appendChild(userNameInput);
         return wrapper;
       };
-      // @TODO DRY
+
       const createTextAreaContainer = () => {
         const wrapper = buildElem('div');
         const label = buildElem('label');
@@ -163,7 +164,8 @@ export default class CommentsPlugin {
           // подготавливаем данные для отправки
           const dataMessage = JSON.stringify({
             userNameValue,
-            outgoingMessage
+            outgoingMessage,
+            formName
           });
           socket.send(dataMessage);
           message.value = '';
@@ -177,11 +179,13 @@ export default class CommentsPlugin {
       socket.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          this.storage && this.storage.addData(data);
-          this.renderComment(data);
+          // когда несколько чатов на странице
+          if (data.formName === this.name) {
+            this.storage && this.storage.addData(data);
+            this.renderComment(data);
+          }
         } catch(e) {
-          //@TODO вывести текст ошибки и информации о неудачном парсинге
-          console.log(e);
+          console.warn('Не удалось распарсить данные');
         }
       };
       const fieldSet = createFieldSet();
@@ -205,7 +209,9 @@ export default class CommentsPlugin {
 
     renderComment({userNameValue, outgoingMessage, time} = data) {
       const message = buildElem('div', {
-        className: this.mod.messageBlock ? `${messageClassName} comments-container__message ${this.mod.messageBlock}` : `${messageClassName} comments-container__message `
+        className: this.mod.messageBlock ?
+          `${messageClassName} ${commentContainerMessageClassName} ${this.mod.messageBlock}`:
+          `${messageClassName} ${commentContainerMessageClassName}`
       });
       const container = buildElem('div', {
         className: messageContainerClassName
@@ -230,7 +236,6 @@ export default class CommentsPlugin {
       const text = buildElem('div', {
         className: messageTextClassName
       }, outgoingMessage);
-
       message.appendChild(container);
       container.appendChild(inner);
       inner.appendChild(info);
